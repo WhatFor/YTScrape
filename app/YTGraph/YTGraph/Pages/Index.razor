@@ -1,0 +1,86 @@
+﻿@page "/"
+@using YTGraph.Services.Query
+@inject MediatR.IMediator Mediator;
+
+<h1 class="mb-4">YouTube Scrapebot 9000</h1>
+<hr/>
+
+<div class="row mt-3">
+    <div class="col-8">
+        <h3 class="font-weight-light text-secondary">Scrape Video Title</h3>
+        <div class="form-group">
+            <input class="form-control" @bind="@UrlTitle" type="text" placeholder="Search video..."/>
+        </div>
+        <Loading WaitOn="@Ready">
+            <div class="form-group">
+                <button class="form-control" @onclick="GetTitleAsync">Get Title</button>
+            </div>
+        </Loading>
+        @if (!string.IsNullOrWhiteSpace(Title))
+        {
+            <div class="alert alert-success">
+                <span class="text-success font-weight-bold ml-3">@Title</span>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-8">
+        <h3 class="font-weight-light text-secondary">Scrape Video Comments</h3>
+        <div class="form-group">
+            <input class="form-control" @bind="@UrlComments" type="text" placeholder="Search video..."/>
+        </div>
+        <Loading WaitOn="@Ready">
+            <div class="form-group">
+                <button class="form-control" @onclick="GetCommentsAsync">Get Comments</button>
+            </div>
+        </Loading>
+        @if (Comments != null && Comments.Any())
+        {
+            @foreach (var comment in Comments)
+            {
+                <p class="text-success font-weight-bold ml-3 mb-0">@comment.User</p>
+                <p class="ml-3">@comment.Comment</p>
+            }
+        }
+    </div>
+</div>
+
+@code {
+    public bool Ready { get; set; } = true;
+    
+    // Title
+    public string UrlTitle { get; set; }
+    public string Title { get; set; }
+
+    public async Task GetTitleAsync()
+    {
+        if (string.IsNullOrWhiteSpace(UrlTitle)) return;
+        
+        Ready = false;
+        
+        Title =  await Mediator
+            .Send(new GetVideoTitleQuery(UrlComments))
+            .ConfigureAwait(false);
+        
+        Ready = true;
+    }
+    
+    // Comments
+    public string UrlComments { get; set; }
+    public IEnumerable<CommentResult> Comments { get; set; }
+    
+    public async Task GetCommentsAsync()
+    {
+        if (string.IsNullOrWhiteSpace(UrlComments)) return;
+        
+        Ready = false;
+        
+        Comments =  await Mediator
+            .Send(new GetVideoTopCommentsQuery(UrlComments))
+            .ConfigureAwait(false);
+        
+        Ready = true;
+    }
+}

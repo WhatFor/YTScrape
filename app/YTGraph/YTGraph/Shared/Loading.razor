@@ -1,0 +1,25 @@
+﻿@using Microsoft.AspNetCore.Components
+
+@if (WaitOn != null || (WaitOn is bool on && on == false))
+{
+    @ChildContent
+}
+else if (FailOn)
+{
+    <span class="loading-diag text-danger">An error has occurred. Please try again.</span>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+    
+    [Parameter]
+    public object WaitOn { get; set; }
+    
+    [Parameter]
+    public bool FailOn { get; set; }
+}
